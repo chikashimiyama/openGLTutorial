@@ -30,11 +30,13 @@ void GLComponent::initialise()
     // vec4 because mat4 requires vec4
     vertices_ = std::array<glm::vec4, 3>{{{0.0f, 0.5f, 0.0f, 1.0f},{0.5f, -0.5f, 0.0f, 1.0f},{-0.5f, -0.5f, 0.0f, 1.0f}}};
 
-    auto modelMatrix  = glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, 0.f, 0.f)); // move to the right
-    auto viewMatrix = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    auto modelMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.5f, 0.5f, 0.5f)); // scale by 0.5
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.25f, 0.f, 0.f)); // move to the right
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0.f, 0.f, 1.f)); // 180 degrees rotation
+
     // this is very costly operation if the number of vertices is very high.
-    std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&](const glm::vec4& vertex){
-        return modelMatrix * viewMatrix * vertex;
+    std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&modelMatrix](const glm::vec4& vertex){
+        return modelMatrix * vertex;
     });
 
     glGenBuffers(1, &positionVboId_);
