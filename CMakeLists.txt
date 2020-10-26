@@ -18,3 +18,8 @@ juce_add_gui_app(translate_cpu)
 target_sources(translate_cpu PRIVATE ${COMMON_SOURCES} source/translate_cpu/GLComponent.cpp)
 target_include_directories(translate_cpu PRIVATE include include/translate_cpu)
 target_link_libraries(translate_cpu PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(modelview_cpu)
+target_sources(modelview_cpu PRIVATE ${COMMON_SOURCES} source/modelview_cpu/GLComponent.cpp)
+target_include_directories(modelview_cpu PRIVATE include include/modelview_cpu)
+target_link_libraries(modelview_cpu PRIVATE ${COMMON_LIBS})
