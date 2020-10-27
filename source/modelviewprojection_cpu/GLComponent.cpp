@@ -31,9 +31,16 @@ void GLComponent::initialise()
     positionAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "position"); // just holds attribute index
 
     /**** modifying vertices using matrix ****/
-    auto modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, 0.f, 0.f)); // move to the right
-    std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&modelMatrix](const glm::vec4& vertex){
-        return modelMatrix * vertex;
+    auto modelMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.5f, 0.5f, 0.5f)); // scale by 0.5
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.25f, 0.f, 10.f)); // move to the right put in the back
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0.f, 0.f, 1.f)); // 180 degrees rotation
+
+    auto viewMatrix = glm::lookAt(glm::vec3(0.25f, 0.f, -1.f), glm::vec3(0.25f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    const auto aspectRatio = static_cast<float>(getWidth())/static_cast<float>(getHeight());
+    auto projectionMatrix = glm::perspective<float>(glm::radians(70.0f), aspectRatio, 0.1f, 100.f);
+    auto mvp = projectionMatrix * viewMatrix * modelMatrix;
+    std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&mvp](const glm::vec4& vertex){
+        return mvp * vertex;
     });
     /**** modifying vertices using matrix ****/
 
@@ -69,7 +76,8 @@ void GLComponent::paint(juce::Graphics& g)
 {
     auto str = juce::String();
     for(auto& vertex : vertices_)
-        str += juce::String("{") + juce::String(vertex.x, 2) + " " + juce::String(vertex.y, 2) + " " + juce::String(vertex.z, 2) + "}\n";
+        str += juce::String("{") + juce::String(vertex.x, 2) + " " + juce::String(vertex.y, 2) + " " + juce::String(vertex.z, 2) + " "
+                + juce::String(vertex.w, 2) + "}\n";
 
     g.setColour(juce::Colour(255, 255, 255));
     g.drawMultiLineText(str, 10, 50, 600);

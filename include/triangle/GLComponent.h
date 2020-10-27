@@ -20,7 +20,8 @@ public:
     void paint(juce::Graphics& g) override;
 
 private:
-    std::array<glm::vec3, 3> vertices_;
+    std::array<glm::vec4, 3> vertices_;
     std::unique_ptr<juce::OpenGLShaderProgram> shader_;
+    std::unique_ptr<juce::OpenGLShaderProgram::Attribute> positionAttribute_;
     GLuint positionVboId_ {INT_MAX } ;
 };

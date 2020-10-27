@@ -18,26 +18,27 @@ GLComponent::~GLComponent()
 
 void GLComponent::initialise()
 {
+    vertices_ = std::array<glm::vec4, 3>{{{0.0f, 0.5f, 0.0f, 1.0f},{0.5f, -0.5f, 0.0f, 1.0f},{-0.5f, -0.5f, 0.0f, 1.0f}}};
     shader_ = std::make_unique<OpenGLShaderProgram>(openGLContext);
 
-    if (!shader_->addVertexShader (BinaryData::minimal_vert)
-        && shader_->addFragmentShader (BinaryData::minimal_frag)
-        && shader_->link())
+    if (!(shader_->addVertexShader (BinaryData::minimal_vert)
+          && shader_->addFragmentShader (BinaryData::minimal_frag)
+          && shader_->link()))
     {
         throw std::runtime_error("Shader compilation error");
     }
 
-    // vec4 because mat4 requires vec4
-    vertices_ = std::array<glm::vec4, 3>{{{0.0f, 0.5f, 0.0f, 1.0f},{0.5f, -0.5f, 0.0f, 1.0f},{-0.5f, -0.5f, 0.0f, 1.0f}}};
+    positionAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "position"); // just holds attribute index
 
+    /**** modifying vertices using matrix ****/
     auto modelMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.5f, 0.5f, 0.5f)); // scale by 0.5
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.25f, 0.f, 0.f)); // move to the right
     modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0.f, 0.f, 1.f)); // 180 degrees rotation
 
-    // this is very costly operation if the number of vertices is very high.
     std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&modelMatrix](const glm::vec4& vertex){
         return modelMatrix * vertex;
     });
+    /**** modifying vertices using matrix ****/
 
     glGenBuffers(1, &positionVboId_);
     glBindBuffer(GL_ARRAY_BUFFER, positionVboId_);
@@ -51,21 +52,20 @@ void GLComponent::shutdown()
 
 void GLComponent::render()
 {
-    const auto desktopScale = (float) openGLContext.getRenderingScale(); // 2.0 when retina
-    glClearColor(0.f, 0.f, 0.3f, 1.f);
+    const auto desktopScale = (float) openGLContext.getRenderingScale();
     glViewport(0, 0, getWidth() * desktopScale , getHeight() * desktopScale);
 
+    glClearColor(0.f, 0.f, 0.3f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     shader_->use();
 
-    glEnableVertexAttribArray (0); // define position vbo as the 0th attribute
     glBindBuffer (GL_ARRAY_BUFFER, positionVboId_);
-    glVertexAttribPointer (0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3); // draw actual GLComponent
-
-    glDisableVertexAttribArray(0);
+    glEnableVertexAttribArray (positionAttribute_->attributeID);
+    glVertexAttribPointer (positionAttribute_->attributeID, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDisableVertexAttribArray(positionAttribute_->attributeID);
 }
 
 void GLComponent::paint(juce::Graphics& g)
