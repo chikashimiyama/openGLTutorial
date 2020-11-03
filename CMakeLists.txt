@@ -24,12 +24,17 @@ target_sources(model_cpu PRIVATE ${COMMON_SOURCES} source/model_cpu/GLComponent.
 target_include_directories(model_cpu PRIVATE include include/model_cpu)
 target_link_libraries(model_cpu PRIVATE ${COMMON_LIBS})
 
-juce_add_gui_app(modelview_cpu)
-target_sources(modelview_cpu PRIVATE ${COMMON_SOURCES} source/modelview_cpu/GLComponent.cpp)
-target_include_directories(modelview_cpu PRIVATE include include/modelview_cpu)
-target_link_libraries(modelview_cpu PRIVATE ${COMMON_LIBS})
-
 juce_add_gui_app(modelviewprojection_cpu)
 target_sources(modelviewprojection_cpu PRIVATE ${COMMON_SOURCES} source/modelviewprojection_cpu/GLComponent.cpp)
 target_include_directories(modelviewprojection_cpu PRIVATE include include/modelviewprojection_cpu)
 target_link_libraries(modelviewprojection_cpu PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(modelviewprojection_gpu)
+target_sources(modelviewprojection_gpu PRIVATE ${COMMON_SOURCES} source/modelviewprojection_gpu/GLComponent.cpp)
+target_include_directories(modelviewprojection_gpu PRIVATE include include/modelviewprojection_gpu)
+target_link_libraries(modelviewprojection_gpu PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(animation)
+target_sources(animation PRIVATE ${COMMON_SOURCES} source/animation/GLComponent.cpp)
+target_include_directories(animation PRIVATE include include/animation)
+target_link_libraries(animation PRIVATE ${COMMON_LIBS})

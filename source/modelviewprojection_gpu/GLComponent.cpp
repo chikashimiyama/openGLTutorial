@@ -2,6 +2,7 @@
 
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "BinaryData.h"
 
 using namespace juce;
@@ -21,7 +22,7 @@ void GLComponent::initialise()
     vertices_ = std::array<glm::vec4, 3>{{{0.0f, 0.5f, 0.0f, 1.0f},{0.5f, -0.5f, 0.0f, 1.0f},{-0.5f, -0.5f, 0.0f, 1.0f}}};
     shader_ = std::make_unique<OpenGLShaderProgram>(openGLContext);
 
-    if (!(shader_->addVertexShader (BinaryData::minimal_vert)
+    if (!(shader_->addVertexShader (BinaryData::mvp_vert)
           && shader_->addFragmentShader (BinaryData::minimal_frag)
           && shader_->link()))
     {
@@ -30,19 +31,21 @@ void GLComponent::initialise()
 
     positionAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "position"); // just holds attribute index
 
-    /**** modifying vertices using matrix ****/
     auto modelMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.5f, 0.5f, 0.5f)); // scale by 0.5
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.25f, 0.f, 0.f)); // move to the right
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.25f, 0.f, 10.f)); // move to the right put in the back
     modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0.f, 0.f, 1.f)); // 180 degrees rotation
 
     auto viewMatrix = glm::lookAt(glm::vec3(0.25f, 0.f, -1.f), glm::vec3(0.25f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-    // move camera also to the right by 0.25
 
-    auto modelViewMatrix =  viewMatrix * modelMatrix;
-    std::transform(vertices_.begin(), vertices_.end(), vertices_.begin(), [&modelViewMatrix](const glm::vec4& vertex){
-        return modelViewMatrix * vertex;
-    });
-    /**** modifying vertices using matrix ****/
+    const auto aspectRatio = static_cast<float>(getWidth())/static_cast<float>(getHeight());
+    auto projectionMatrix = glm::perspective<float>(glm::radians(70.0f), aspectRatio, 0.1f, 100.f);
+
+    /**** passing matrices to VRAM ****/
+    shader_->use();
+    shader_->setUniformMat4("modelMatrix", glm::value_ptr(modelMatrix), 1, GL_FALSE);
+    shader_->setUniformMat4("viewMatrix", glm::value_ptr(viewMatrix), 1, GL_FALSE);
+    shader_->setUniformMat4("projectionMatrix", glm::value_ptr(projectionMatrix), 1, GL_FALSE);
+
 
     glGenBuffers(1, &positionVboId_);
     glBindBuffer(GL_ARRAY_BUFFER, positionVboId_);
@@ -74,10 +77,5 @@ void GLComponent::render()
 
 void GLComponent::paint(juce::Graphics& g)
 {
-    auto str = juce::String();
-    for(auto& vertex : vertices_)
-        str += juce::String("{") + juce::String(vertex.x, 2) + " " + juce::String(vertex.y, 2) + " " + juce::String(vertex.z, 2) + "}\n";
 
-    g.setColour(juce::Colour(255, 255, 255));
-    g.drawMultiLineText(str, 10, 50, 600);
 }
