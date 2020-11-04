@@ -21,9 +21,14 @@ public:
 
 private:
     std::array<glm::vec4, 3> vertices_;
+    std::array<glm::vec2, 3> texCoords_;
+
     std::unique_ptr<juce::OpenGLShaderProgram> shader_;
     std::unique_ptr<juce::OpenGLShaderProgram::Attribute> positionAttribute_;
-    GLuint positionVboId_ {INT_MAX } ;
+    std::unique_ptr<juce::OpenGLShaderProgram::Attribute> texCoordAttribute_;
 
-    float degree_ { 0.f };
+    GLuint positionVboId_ {INT_MAX } ;
+    GLuint texCoordVboId_ {INT_MAX } ;
+
+    juce::OpenGLTexture texture_;
 };

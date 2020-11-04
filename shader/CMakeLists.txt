@@ -9,6 +9,7 @@ juce_add_binary_data(shader
         varying.vert
         texture.vert
         attributes.frag
+        blur.frag
         minimal.frag
         normal.frag
         color.frag

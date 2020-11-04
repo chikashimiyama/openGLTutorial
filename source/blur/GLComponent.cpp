@@ -20,31 +20,32 @@ GLComponent::~GLComponent()
 void GLComponent::initialise()
 {
     vertices_ = std::array<glm::vec4, 3>{{{0.0f, 0.5f, 0.0f, 1.0f},{0.5f, -0.5f, 0.0f, 1.0f},{-0.5f, -0.5f, 0.0f, 1.0f}}};
+    texCoords_ = std::array<glm::vec2, 3>{{{0.5f, 1.0f},{1.0f, 0.0f},{0.0f, 0.0f}}};
+
+    texture_.loadImage(juce::ImageCache::getFromMemory(BinaryData::texture_png, BinaryData::texture_pngSize));
+
     shader_ = std::make_unique<OpenGLShaderProgram>(openGLContext);
 
-    if (!(shader_->addVertexShader (BinaryData::mvp_vert)
-          && shader_->addFragmentShader (BinaryData::color_frag)
+    if (!(shader_->addVertexShader (BinaryData::texture_vert)
+          && shader_->addFragmentShader (BinaryData::blur_frag)
           && shader_->link()))
     {
         throw std::runtime_error("Shader compilation error");
     }
 
-    positionAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "position"); // just holds attribute index
-
-    auto viewMatrix = glm::lookAt(glm::vec3(0.0f, 0.f, 3.f), glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-
-    const auto aspectRatio = static_cast<float>(getWidth())/static_cast<float>(getHeight());
-    auto projectionMatrix = glm::perspective<float>(glm::radians(70.0f), aspectRatio, 0.1f, 100.f);
-
-    /**** passing matrices to VRAM ****/
     shader_->use();
-    shader_->setUniformMat4("viewMatrix", glm::value_ptr(viewMatrix), 1, GL_FALSE);
-    shader_->setUniformMat4("projectionMatrix", glm::value_ptr(projectionMatrix), 1, GL_FALSE);
 
+    positionAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "position");
+    texCoordAttribute_ = std::make_unique<OpenGLShaderProgram::Attribute>(*shader_, "texCoord");
 
     glGenBuffers(1, &positionVboId_);
     glBindBuffer(GL_ARRAY_BUFFER, positionVboId_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_), vertices_.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &texCoordVboId_);
+    glBindBuffer(GL_ARRAY_BUFFER, texCoordVboId_);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords_), texCoords_.data(), GL_STATIC_DRAW);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -54,38 +55,28 @@ void GLComponent::shutdown()
 
 void GLComponent::render()
 {
-
     const auto desktopScale = (float) openGLContext.getRenderingScale();
     glViewport(0, 0, getWidth() * desktopScale , getHeight() * desktopScale);
 
     glClearColor(0.f, 0.f, 0.3f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear also depth buffer
-    glEnable(GL_DEPTH_TEST); // comment out this for test
+    glClear(GL_COLOR_BUFFER_BIT);
+
     shader_->use();
 
     glBindBuffer (GL_ARRAY_BUFFER, positionVboId_);
     glEnableVertexAttribArray (positionAttribute_->attributeID);
     glVertexAttribPointer (positionAttribute_->attributeID, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    {
-        // red triangle
-        auto modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-0.3f, 0.f, 0.f)); // front
-        shader_->setUniformMat4("modelMatrix", glm::value_ptr(modelMatrix), 1, GL_FALSE);
-        shader_->setUniform("color", 1.f, 0.f, 0.f, 1.f); // red
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
+    glBindBuffer (GL_ARRAY_BUFFER, texCoordVboId_);
+    glEnableVertexAttribArray (texCoordAttribute_->attributeID);
+    glVertexAttribPointer (texCoordAttribute_->attributeID, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    {
-        // blue triangle
-        auto modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, 0.f, -0.1f)); // behind
-        shader_->setUniformMat4("modelMatrix", glm::value_ptr(modelMatrix), 1, GL_FALSE);
-        shader_->setUniform("color", 0.f, 0.f, 1.f, 1.f); // blue
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
+    texture_.bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    texture_.unbind();
 
     glDisableVertexAttribArray(positionAttribute_->attributeID);
-    glDisable(GL_DEPTH_TEST);
-
+    glDisableVertexAttribArray(texCoordAttribute_->attributeID);
 }
 
 void GLComponent::paint(juce::Graphics& g)
