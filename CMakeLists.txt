@@ -53,3 +53,18 @@ juce_add_gui_app(attributes)
 target_sources(attributes PRIVATE ${COMMON_SOURCES} source/attributes/GLComponent.cpp)
 target_include_directories(attributes PRIVATE include include/attributes)
 target_link_libraries(attributes PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(lighting)
+target_sources(lighting PRIVATE ${COMMON_SOURCES} source/lighting/GLComponent.cpp)
+target_include_directories(lighting PRIVATE include include/lighting)
+target_link_libraries(lighting PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(culling)
+target_sources(culling PRIVATE ${COMMON_SOURCES} source/culling/GLComponent.cpp)
+target_include_directories(culling PRIVATE include include/culling)
+target_link_libraries(culling PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(texture)
+target_sources(texture PRIVATE ${COMMON_SOURCES} source/texture/GLComponent.cpp)
+target_include_directories(texture PRIVATE include include/texture)
+target_link_libraries(texture PRIVATE ${COMMON_LIBS})
