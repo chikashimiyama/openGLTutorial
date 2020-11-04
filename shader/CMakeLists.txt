@@ -2,6 +2,11 @@
 
 juce_add_binary_data(shader
         SOURCES
+        attributes.vert
         minimal.vert
         mvp.vert
-        minimal.frag)
+        varying.vert
+        attributes.frag
+        minimal.frag
+        color.frag
+        varying.frag)

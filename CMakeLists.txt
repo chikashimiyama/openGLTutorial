@@ -38,3 +38,18 @@ juce_add_gui_app(animation)
 target_sources(animation PRIVATE ${COMMON_SOURCES} source/animation/GLComponent.cpp)
 target_include_directories(animation PRIVATE include include/animation)
 target_link_libraries(animation PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(depth)
+target_sources(depth PRIVATE ${COMMON_SOURCES} source/depth/GLComponent.cpp)
+target_include_directories(depth PRIVATE include include/depth)
+target_link_libraries(depth PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(varying)
+target_sources(varying PRIVATE ${COMMON_SOURCES} source/varying/GLComponent.cpp)
+target_include_directories(varying PRIVATE include include/varying)
+target_link_libraries(varying PRIVATE ${COMMON_LIBS})
+
+juce_add_gui_app(attributes)
+target_sources(attributes PRIVATE ${COMMON_SOURCES} source/attributes/GLComponent.cpp)
+target_include_directories(attributes PRIVATE include include/attributes)
+target_link_libraries(attributes PRIVATE ${COMMON_LIBS})
